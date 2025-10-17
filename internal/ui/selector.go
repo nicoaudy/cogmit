@@ -120,13 +120,7 @@ func (m SelectorModel) View() string {
 			style = selectedItemStyle
 		}
 
-		// Truncate long messages for better display
-		displayChoice := choice
-		if len(choice) > 60 {
-			displayChoice = choice[:57] + "..."
-		}
-
-		s.WriteString(fmt.Sprintf("%s %s\n", cursor, style.Render(displayChoice)))
+		s.WriteString(fmt.Sprintf("%s %s\n", cursor, style.Render(choice)))
 	}
 
 	// Help text

@@ -46,7 +46,6 @@ func runGenerate() error {
 	}
 
 	// Get the diff
-	fmt.Println("🔍 Analyzing changes...")
 	diff, err := git.GetDiff()
 	if err != nil {
 		return fmt.Errorf("failed to get changes: %w", err)
@@ -56,28 +55,23 @@ func runGenerate() error {
 		return fmt.Errorf("no changes found to commit")
 	}
 
-	// Check if there are staged changes
-	hasStaged := git.HasStagedChanges()
-	if hasStaged {
-		fmt.Println("📝 Found staged changes")
-	} else {
-		fmt.Println("📝 Found working directory changes")
-	}
-
 	// Generate commit messages using Ollama
-	fmt.Printf("🤖 Generating commit messages using %s...\n", cfg.Model)
-
 	ollamaClient := ai.NewOllamaClient(cfg.OllamaHost, cfg.Model)
 	messages, err := ollamaClient.GenerateCommitMessages(diff, cfg.NumSuggestions)
 	if err != nil {
+		// Provide more helpful error messages
+		if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "deadline exceeded") {
+			return fmt.Errorf("request timed out - the model may be too slow. Try a smaller model like 'llama3.2:1b' or 'llama3.2:3b'")
+		}
+		if strings.Contains(err.Error(), "connection refused") {
+			return fmt.Errorf("cannot connect to Ollama - make sure it's running with 'ollama serve'")
+		}
 		return fmt.Errorf("failed to generate commit messages: %w", err)
 	}
 
 	if len(messages) == 0 {
 		return fmt.Errorf("no commit messages generated")
 	}
-
-	fmt.Printf("✨ Generated %d commit message suggestions\n\n", len(messages))
 
 	// Show interactive selector
 	selector := ui.NewSelectorModel(messages)
@@ -96,9 +90,6 @@ func runGenerate() error {
 		return nil
 	}
 
-	// Show the selected message
-	fmt.Printf("\n✅ Selected: %s\n", selectedMessage)
-
 	// Ask for confirmation if not auto-committing
 	if !cfg.AutoCommit {
 		fmt.Print("Commit with this message? [Y/n]: ")
@@ -112,11 +103,9 @@ func runGenerate() error {
 	}
 
 	// Commit the changes
-	fmt.Println("💾 Committing changes...")
 	if err := git.Commit(selectedMessage); err != nil {
 		return fmt.Errorf("failed to commit: %w", err)
 	}
 
-	fmt.Println("🎉 Successfully committed!")
 	return nil
 }

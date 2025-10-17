@@ -52,7 +52,7 @@ func (c *OllamaClient) GenerateCommitMessages(diff string, numSuggestions int) (
 	}
 
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 120 * time.Second, // Increased timeout for larger models
 	}
 
 	resp, err := client.Post(c.Host+"/api/generate", "application/json", bytes.NewBuffer(jsonData))
@@ -78,21 +78,17 @@ func (c *OllamaClient) GenerateCommitMessages(diff string, numSuggestions int) (
 
 // buildPrompt creates the prompt for generating commit messages
 func (c *OllamaClient) buildPrompt(diff string, numSuggestions int) string {
-	return fmt.Sprintf(`You are an expert Git commit message generator. Analyze the following Git diff and generate %d concise, clear commit messages following conventional commit format (feat:, fix:, refactor:, docs:, style:, test:, chore:).
+	return fmt.Sprintf(`Generate %d descriptive Git commit messages for this diff. Use conventional format (feat:, fix:, refactor:, etc.). Be specific about what changed and why. Include details about the actual changes made. Present tense, under 75 chars. Return ONLY the commit messages, one per line, no explanations.
 
-Rules:
-- Use conventional commit format
-- Be concise but descriptive
-- Focus on what changed, not how
-- Use present tense ("add feature" not "added feature")
-- Keep under 50 characters for the subject line
-- Each message should be on a separate line
-- Number each message (1., 2., 3., etc.)
+Examples of good messages:
+- feat: add user authentication with JWT tokens
+- fix: resolve memory leak in image processing module
+- refactor: extract database queries into separate service layer
 
-Git diff:
+Diff:
 %s
 
-Generate %d commit messages:`, numSuggestions, diff, numSuggestions)
+feat:`, numSuggestions, diff)
 }
 
 // parseCommitMessages parses the AI response to extract individual commit messages
@@ -103,6 +99,15 @@ func (c *OllamaClient) parseCommitMessages(response string, expectedCount int) [
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
+			continue
+		}
+
+		// Skip lines that start with explanatory text
+		lineLower := strings.ToLower(line)
+		if strings.HasPrefix(lineLower, "here are") ||
+		   strings.HasPrefix(lineLower, "the following") ||
+		   strings.HasPrefix(lineLower, "based on") ||
+		   strings.HasPrefix(lineLower, "commit messages") {
 			continue
 		}
 
