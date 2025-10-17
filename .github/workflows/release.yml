@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Build binaries
+        run: |
+          # Create build directory
+          mkdir -p dist
+          
+          # Build for multiple platforms
+          GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/cogmit-linux-amd64 .
+          GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o dist/cogmit-linux-arm64 .
+          GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/cogmit-darwin-amd64 .
+          GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o dist/cogmit-darwin-arm64 .
+          GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/cogmit-windows-amd64.exe .
+          GOOS=windows GOARCH=arm64 go build -ldflags="-s -w" -o dist/cogmit-windows-arm64.exe .
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

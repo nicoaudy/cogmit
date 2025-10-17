@@ -1,9 +1,9 @@
 # cogmit Makefile
 
 BINARY_NAME=cogmit
-VERSION?=0.1.0
+VERSION?=dev
 BUILD_DIR=build
-LDFLAGS=-ldflags "-X main.version=$(VERSION)"
+LDFLAGS=-ldflags "-s -w -X main.version=$(VERSION)"
 
 .PHONY: build clean install test help
 
@@ -76,6 +76,12 @@ lint:
 	@go vet ./...
 	@echo "✅ Linting complete"
 
+# Create a new release tag
+release:
+	@echo "Creating release for version $(VERSION)"
+	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
+	@git push origin v$(VERSION)
+
 # Show help
 help:
 	@echo "cogmit Makefile"
@@ -91,4 +97,5 @@ help:
 	@echo "  dev-setup    Setup development environment"
 	@echo "  fmt          Format code"
 	@echo "  lint         Lint code"
+	@echo "  release      Create a new release tag"
 	@echo "  help         Show this help message"
