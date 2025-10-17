@@ -33,6 +33,34 @@ cogmit is a beautiful CLI tool that analyzes your Git changes and generates inte
 
 ### Installation
 
+**Option 1: One-liner install (Recommended)**
+```bash
+curl -fsSL https://raw.githubusercontent.com/nicoaudy/cogmit/main/install.sh | sh
+```
+
+**Option 2: Manual installation**
+```bash
+# Download the binary for your platform
+# Linux (amd64)
+wget https://github.com/nicoaudy/cogmit/releases/latest/download/cogmit-linux-amd64
+chmod +x cogmit-linux-amd64
+sudo mv cogmit-linux-amd64 /usr/local/bin/cogmit
+
+# macOS (Intel)
+wget https://github.com/nicoaudy/cogmit/releases/latest/download/cogmit-darwin-amd64
+chmod +x cogmit-darwin-amd64
+sudo mv cogmit-darwin-amd64 /usr/local/bin/cogmit
+
+# macOS (Apple Silicon)
+wget https://github.com/nicoaudy/cogmit/releases/latest/download/cogmit-darwin-arm64
+chmod +x cogmit-darwin-arm64
+sudo mv cogmit-darwin-arm64 /usr/local/bin/cogmit
+
+# Windows (amd64)
+# Download cogmit-windows-amd64.exe and add to PATH
+```
+
+**Option 3: Build from source**
 ```bash
 # Clone the repository
 git clone https://github.com/nicoaudy/cogmit.git
