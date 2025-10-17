@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # cogmit installation script
-# Usage: curl -fsSL https://raw.githubusercontent.com/nicoaudy/cogmit/main/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/nicoaudy/cogmit/main/install.sh | bash
 
 set -e
 
@@ -25,7 +25,7 @@ get_latest_version() {
 # Detect platform and architecture
 detect_platform() {
     local os arch
-    
+
     # Detect OS
     case "$(uname -s)" in
         Linux*)     os="linux" ;;
@@ -33,7 +33,7 @@ detect_platform() {
         CYGWIN*|MINGW*|MSYS*) os="windows" ;;
         *)          echo -e "${RED}❌ Unsupported operating system: $(uname -s)${NC}" >&2; exit 1 ;;
     esac
-    
+
     # Detect architecture
     case "$(uname -m)" in
         x86_64|amd64)   arch="amd64" ;;
@@ -41,7 +41,7 @@ detect_platform() {
         armv7l)         arch="arm64" ;; # Fallback for some ARM systems
         *)              echo -e "${RED}❌ Unsupported architecture: $(uname -m)${NC}" >&2; exit 1 ;;
     esac
-    
+
     echo "${os}-${arch}"
 }
 
@@ -50,29 +50,29 @@ install_binary() {
     local version=$1
     local platform=$2
     local download_url="https://github.com/${REPO}/releases/download/${version}/cogmit-${platform}"
-    
+
     # Add .exe extension for Windows
-    if [[ "$platform" == windows-* ]]; then
+    if [ "${platform#windows-}" != "$platform" ]; then
         download_url="${download_url}.exe"
     fi
-    
+
     echo -e "${BLUE}📥 Downloading cogmit ${version} for ${platform}...${NC}"
-    
+
     # Create temp directory
     local temp_dir=$(mktemp -d)
     cd "$temp_dir"
-    
+
     # Download binary
     if ! curl -fsSL "$download_url" -o "$BINARY_NAME"; then
         echo -e "${RED}❌ Failed to download binary${NC}" >&2
         exit 1
     fi
-    
+
     # Make executable
     chmod +x "$BINARY_NAME"
-    
+
     # Check if we can write to install directory
-    if [[ -w "$INSTALL_DIR" ]]; then
+    if [ -w "$INSTALL_DIR" ]; then
         # We have write permissions
         mv "$BINARY_NAME" "$INSTALL_DIR/"
     else
@@ -80,7 +80,7 @@ install_binary() {
         echo -e "${YELLOW}🔐 Installing to ${INSTALL_DIR} requires sudo permissions${NC}"
         sudo mv "$BINARY_NAME" "$INSTALL_DIR/"
     fi
-    
+
     # Cleanup
     cd /
     rm -rf "$temp_dir"
@@ -108,24 +108,24 @@ verify_installation() {
 main() {
     echo -e "${BLUE}🤖 Installing cogmit...${NC}"
     echo ""
-    
+
     # Get latest version
     echo -e "${BLUE}🔍 Checking for latest version...${NC}"
     local version=$(get_latest_version)
-    if [[ -z "$version" ]]; then
+    if [ -z "$version" ]; then
         echo -e "${RED}❌ Failed to get latest version${NC}" >&2
         exit 1
     fi
     echo -e "${GREEN}   Latest version: ${version}${NC}"
-    
+
     # Detect platform
     echo -e "${BLUE}🔍 Detecting platform...${NC}"
     local platform=$(detect_platform)
     echo -e "${GREEN}   Platform: ${platform}${NC}"
-    
+
     # Install binary
     install_binary "$version" "$platform"
-    
+
     # Verify installation
     verify_installation
 }

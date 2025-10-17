@@ -35,7 +35,7 @@ cogmit is a beautiful CLI tool that analyzes your Git changes and generates inte
 
 **Option 1: One-liner install (Recommended)**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nicoaudy/cogmit/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/nicoaudy/cogmit/main/install.sh | bash
 ```
 
 **Option 2: Manual installation**
