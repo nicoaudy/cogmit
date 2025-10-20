@@ -76,19 +76,29 @@ func (c *OllamaClient) GenerateCommitMessages(diff string, numSuggestions int) (
 	return messages, nil
 }
 
-// buildPrompt creates the prompt for generating commit messages
 func (c *OllamaClient) buildPrompt(diff string, numSuggestions int) string {
-	return fmt.Sprintf(`Generate %d descriptive Git commit messages for this diff. Use conventional format (feat:, fix:, refactor:, etc.). Be specific about what changed and why. Include details about the actual changes made. Present tense, under 75 chars. Return ONLY the commit messages, one per line, no explanations.
+	return fmt.Sprintf(`You are an expert software engineer writing clear and professional Git commit messages.
 
-Examples of good messages:
-- feat: add user authentication with JWT tokens
-- fix: resolve memory leak in image processing module
-- refactor: extract database queries into separate service layer
+TASK:
+Generate %d meaningful commit messages describing the following code diff.
 
-Diff:
+RULES:
+- Use the Conventional Commits style (feat:, fix:, refactor:, chore:, etc.)
+- Optionally include a scope in parentheses if relevant, e.g. feat(auth):
+- Be specific about what changed and why
+- Each message must be a single line under 100 characters
+- Do NOT repeat or copy any examples
+- Return ONLY the commit messages, one per line, no numbering, no explanations
+
+Example style — DO NOT COPY, only follow this style:
+feat(auth): add JWT authentication middleware for secure login
+fix(api): handle nil pointer exception in user profile update route
+refactor(db): move queries to dedicated repository layer for maintainability
+
+DIFF:
 %s
 
-feat:`, numSuggestions, diff)
+Write the commit messages:`, numSuggestions, diff)
 }
 
 // parseCommitMessages parses the AI response to extract individual commit messages
